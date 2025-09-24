@@ -14,8 +14,12 @@ import { ArrowLeft, Heart, Share, RotateCcw } from 'lucide-react-native';
 import Markdown from 'react-native-markdown-display';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Sharing from 'expo-sharing';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/hooks/useTheme';
+import GlitterBackground from '@/components/GlitterBackground';
 
 export default function ResultScreen() {
+  const { colors, theme } = useTheme();
   const { imageData, result, timestamp } = useLocalSearchParams<{
     imageData: string;
     result: string;
@@ -65,139 +69,169 @@ export default function ResultScreen() {
     });
   };
 
-  const markdownStyles = {
-    body: {
-      fontSize: 16,
-      lineHeight: 24,
-      color: '#374151',
-    },
-    heading1: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#1f2937',
-      marginBottom: 16,
-      marginTop: 24,
-    },
-    heading2: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#1f2937',
-      marginBottom: 12,
-      marginTop: 20,
-    },
-    heading3: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: '#374151',
-      marginBottom: 8,
-      marginTop: 16,
-    },
-    paragraph: {
-      marginBottom: 12,
-      lineHeight: 24,
-    },
-    list_item: {
-      marginBottom: 8,
-    },
-    bullet_list: {
-      marginBottom: 16,
-    },
-    ordered_list: {
-      marginBottom: 16,
-    },
-    strong: {
-      fontWeight: 'bold',
-      color: '#1f2937',
-    },
-    em: {
-      fontStyle: 'italic',
-    },
-    code_inline: {
-      backgroundColor: '#f3f4f6',
-      paddingHorizontal: 4,
-      paddingVertical: 2,
-      borderRadius: 4,
-      fontSize: 14,
-      fontFamily: 'monospace',
-    },
-    blockquote: {
-      backgroundColor: '#f0fdf4',
-      borderLeftWidth: 4,
-      borderLeftColor: '#22c55e',
-      paddingLeft: 16,
-      paddingVertical: 12,
-      marginVertical: 16,
-    },
-    hr: {
-      backgroundColor: '#e5e7eb',
-      height: 1,
-      marginVertical: 24,
-    },
-  };
 
   if (!imageData || !result) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Erro: Dados da análise não encontrados</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <LinearGradient
+          colors={theme === 'dark' 
+            ? ['#0f172a', '#1e293b', '#334155'] 
+            : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
+          }
+          style={styles.backgroundGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <SafeAreaView style={styles.safeArea}>
+            <View style={styles.errorContainer}>
+              <Text style={[styles.errorText, { color: colors.error }]}>Erro: Dados da análise não encontrados</Text>
+              <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.primary }]} onPress={() => router.back()}>
+                <Text style={styles.backButtonText}>Voltar</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={theme === 'dark' 
+          ? ['#0f172a', '#1e293b', '#334155'] 
+          : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
+        }
+        style={styles.backgroundGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <GlitterBackground starCount={34} size={8} color="#22c55e" />
+        <GlitterBackground starCount={34} size={8} color="#22c55e" />
+        <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
-          <ArrowLeft size={24} color="#1f2937" />
+          <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Resultado da Análise</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Resultado da Análise</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={toggleFavorite} style={styles.headerButton}>
             <Heart
               size={24}
-              color={isFavorite ? '#ef4444' : '#6b7280'}
-              fill={isFavorite ? '#ef4444' : 'none'}
+              color={isFavorite ? colors.error : colors.textSecondary}
+              fill={isFavorite ? colors.error : 'none'}
             />
           </TouchableOpacity>
           <TouchableOpacity onPress={shareResult} style={styles.headerButton}>
-            <Share size={24} color="#6b7280" />
+            <Share size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.imageSection}>
+        <View style={[styles.imageSection, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           <Image source={{ uri: `data:image/jpeg;base64,${imageData}` }} style={styles.resultImage} />
-          <Text style={styles.analysisDate}>
+          <Text style={[styles.analysisDate, { color: colors.textSecondary }]}>
             Analisado em {formatDate(timestamp)}
           </Text>
         </View>
 
-        <View style={styles.resultSection}>
-          <Markdown style={markdownStyles}>
+        <View style={[styles.resultSection, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+          <Markdown style={{
+            body: {
+              fontSize: 16,
+              lineHeight: 24,
+              color: colors.text,
+            },
+            heading1: {
+              fontSize: 24,
+              fontWeight: 'bold' as const,
+              color: colors.text,
+              marginBottom: 16,
+              marginTop: 24,
+            },
+            heading2: {
+              fontSize: 20,
+              fontWeight: 'bold' as const,
+              color: colors.text,
+              marginBottom: 12,
+              marginTop: 20,
+            },
+            heading3: {
+              fontSize: 18,
+              fontWeight: '600' as const,
+              color: colors.text,
+              marginBottom: 8,
+              marginTop: 16,
+            },
+            paragraph: {
+              marginBottom: 12,
+              lineHeight: 24,
+            },
+            list_item: {
+              marginBottom: 8,
+            },
+            bullet_list: {
+              marginBottom: 16,
+            },
+            ordered_list: {
+              marginBottom: 16,
+            },
+            strong: {
+              fontWeight: 'bold' as const,
+              color: colors.text,
+            },
+            em: {
+              fontStyle: 'italic' as const,
+            },
+            code_inline: {
+              backgroundColor: colors.border,
+              paddingHorizontal: 4,
+              paddingVertical: 2,
+              borderRadius: 4,
+              fontSize: 14,
+              fontFamily: 'monospace',
+            },
+            blockquote: {
+              backgroundColor: colors.surface,
+              borderLeftWidth: 4,
+              borderLeftColor: colors.primary,
+              paddingLeft: 16,
+              paddingVertical: 12,
+              marginVertical: 16,
+            },
+            hr: {
+              backgroundColor: colors.border,
+              height: 1,
+              marginVertical: 24,
+            },
+          }}>
             {result}
           </Markdown>
         </View>
       </ScrollView>
 
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.newAnalysisButton} onPress={newAnalysis}>
+      <View style={[styles.bottomActions, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <TouchableOpacity style={[styles.newAnalysisButton, { backgroundColor: colors.primary }]} onPress={newAnalysis}>
           <RotateCcw size={20} color="#ffffff" />
           <Text style={styles.newAnalysisButtonText}>Nova Análise</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+  },
+  backgroundGradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -205,9 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   headerButton: {
     padding: 8,
@@ -215,7 +247,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
     flex: 1,
     textAlign: 'center',
   },
@@ -229,9 +260,7 @@ const styles = StyleSheet.create({
   imageSection: {
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   resultImage: {
     width: 200,
@@ -241,15 +270,12 @@ const styles = StyleSheet.create({
   },
   analysisDate: {
     fontSize: 14,
-    color: '#6b7280',
     fontWeight: '500',
   },
   resultSection: {
-    backgroundColor: '#ffffff',
     padding: 24,
     margin: 16,
     borderRadius: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -258,9 +284,7 @@ const styles = StyleSheet.create({
   bottomActions: {
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
   },
   newAnalysisButton: {
     flexDirection: 'row',
@@ -268,7 +292,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#22c55e',
     gap: 8,
   },
   newAnalysisButtonText: {
@@ -284,14 +307,12 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: '#dc2626',
     textAlign: 'center',
     marginBottom: 24,
   },
   backButton: {
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: '#22c55e',
     borderRadius: 8,
   },
   backButtonText: {
