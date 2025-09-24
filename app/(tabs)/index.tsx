@@ -11,13 +11,11 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Camera, Image as ImageIcon, Sparkles, Leaf, Sun, Search, CheckSquare } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, Sparkles, Leaf } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import GlitterBackground from '@/components/GlitterBackground';
-import { useTheme } from '@/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 
@@ -30,7 +28,6 @@ interface Analysis {
 }
 
 export default function HomeScreen() {
-  const { colors, theme } = useTheme();
   const [recentAnalyses, setRecentAnalyses] = useState<Analysis[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -119,37 +116,25 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <LinearGradient
-        colors={theme === 'dark' 
-          ? ['#0f172a', '#1e293b', '#334155'] 
-          : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
-        }
-        style={styles.backgroundGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <GlitterBackground starCount={50} size={8} color="#22c55e" />
-        <SafeAreaView style={styles.safeArea}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.header}>
-              <View style={styles.headerContent}>
-                <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-                  <Leaf size={32} color={colors.primary} />
-                </View>
-                <Text style={[styles.headerTitle, { color: colors.text }]}>PlantCare</Text>
-              </View>
-            </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Leaf size={32} color="#22c55e" />
+            <Text style={styles.headerTitle}>PlantAI</Text>
+          </View>
+          <Text style={styles.headerSubtitle}>
+            Analise a saúde das suas plantas com inteligência artificial
+          </Text>
+        </View>
 
         <View style={styles.actionSection}>
           <LinearGradient
-            colors={[colors.primary, '#16a34a']}
-            style={[styles.mainButton, { shadowColor: colors.primary }]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            colors={['#22c55e', '#16a34a']}
+            style={styles.mainButton}
           >
             <TouchableOpacity
-              style={styles.mainButtonTouchable}
+              style={styles.mainButtonContent}
               onPress={() => {
                 Alert.alert(
                   'Escolha uma opção',
@@ -167,10 +152,8 @@ export default function HomeScreen() {
                 <ActivityIndicator color="#ffffff" size="large" />
               ) : (
                 <>
-                  <View style={styles.sparkleContainer}>
-                    <Sparkles size={32} color="#ffffff" />
-                  </View>
-                  <Text style={styles.mainButtonText}>ANALISAR PLANTA</Text>
+                  <Sparkles size={32} color="#ffffff" />
+                  <Text style={styles.mainButtonText}>Analisar Planta</Text>
                   <Text style={styles.mainButtonSubtext}>
                     Tire uma foto ou selecione da galeria
                   </Text>
@@ -181,57 +164,75 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.quickActions}>
-          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: colors.surface, shadowColor: colors.shadow }]} onPress={takePhoto}>
-            <View style={[styles.quickActionIconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <Camera size={24} color={colors.primary} />
-            </View>
-            <Text style={[styles.quickActionText, { color: colors.text }]}>Câmera</Text>
+          <TouchableOpacity style={styles.quickActionButton} onPress={takePhoto}>
+            <Camera size={24} color="#22c55e" />
+            <Text style={styles.quickActionText}>Câmera</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickActionButton, { backgroundColor: colors.surface, shadowColor: colors.shadow }]} onPress={pickImage}>
-            <View style={[styles.quickActionIconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <ImageIcon size={24} color={colors.primary} />
-            </View>
-            <Text style={[styles.quickActionText, { color: colors.text }]}>Galeria</Text>
+          <TouchableOpacity style={styles.quickActionButton} onPress={pickImage}>
+            <ImageIcon size={24} color="#22c55e" />
+            <Text style={styles.quickActionText}>Galeria</Text>
           </TouchableOpacity>
         </View>
 
+        {recentAnalyses.length > 0 && (
+          <View style={styles.recentSection}>
+            <Text style={styles.sectionTitle}>Análises Recentes</Text>
+            {recentAnalyses.map((analysis) => (
+              <TouchableOpacity
+                key={analysis.id}
+                style={styles.recentItem}
+                onPress={() => router.push({
+                  pathname: '/result',
+                  params: {
+                    imageData: analysis.imageData,
+                    result: analysis.result,
+                    timestamp: analysis.timestamp.toString(),
+                  },
+                })}
+              >
+                <View style={styles.recentItemContent}>
+                  <Image source={{ uri: `data:image/jpeg;base64,${analysis.imageData}` }} style={styles.recentItemImage} />
+                  <View style={styles.recentItemText}>
+                    <Text style={styles.recentItemTitle}>
+                      Análise de {formatDate(analysis.timestamp)}
+                    </Text>
+                    <Text style={styles.recentItemSubtitle} numberOfLines={2}>
+                      {analysis.result}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.viewAllButton}
+              onPress={() => router.push('/history')}
+            >
+              <Text style={styles.viewAllText}>Ver Todas as Análises</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <View style={styles.tipsSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Dicas para Melhores Resultados</Text>
-          <View style={[styles.tipItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
-            <View style={[styles.tipIconContainer, { backgroundColor: colors.warning + '20' }]}>
-              <Sun size={20} color={colors.warning} />
-            </View>
-            <Text style={[styles.tipText, { color: colors.text }]}>Tire fotos com boa iluminação natural</Text>
+          <Text style={styles.sectionTitle}>Dicas para Melhores Resultados</Text>
+          <View style={styles.tipItem}>
+            <Text style={styles.tipText}>📸 Tire fotos com boa iluminação natural</Text>
           </View>
-          <View style={[styles.tipItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
-            <View style={[styles.tipIconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <Search size={20} color={colors.primary} />
-            </View>
-            <Text style={[styles.tipText, { color: colors.text }]}>Foque em uma folha por vez</Text>
+          <View style={styles.tipItem}>
+            <Text style={styles.tipText}>🍃 Foque em uma folha por vez</Text>
           </View>
-          <View style={[styles.tipItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
-            <View style={[styles.tipIconContainer, { backgroundColor: '#3b82f620' }]}>
-              <CheckSquare size={20} color="#3b82f6" />
-            </View>
-            <Text style={[styles.tipText, { color: colors.text }]}>Mantenha a folha bem enquadrada</Text>
+          <View style={styles.tipItem}>
+            <Text style={styles.tipText}>🔍 Mantenha a folha bem enquadrada</Text>
           </View>
         </View>
-        </ScrollView>
-        </SafeAreaView>
-      </LinearGradient>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  backgroundGradient: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
+    backgroundColor: '#f8fafc',
   },
   header: {
     padding: 24,
@@ -240,27 +241,18 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
     marginBottom: 8,
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginLeft: 4,
+    color: '#1f2937',
+    marginLeft: 12,
   },
   headerSubtitle: {
     fontSize: 16,
+    color: '#6b7280',
     lineHeight: 24,
-    marginLeft: 12,
-    flex: 1,
   },
   actionSection: {
     paddingHorizontal: 24,
@@ -268,34 +260,20 @@ const styles = StyleSheet.create({
   },
   mainButton: {
     borderRadius: 20,
-    minHeight: 160,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    overflow: 'hidden',
   },
-  mainButtonTouchable: {
+  mainButtonContent: {
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 160,
   },
-  sparkleContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
   mainButtonText: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffff',
     marginTop: 12,
     marginBottom: 4,
-    letterSpacing: 1,
   },
   mainButtonSubtext: {
     fontSize: 14,
@@ -311,25 +289,21 @@ const styles = StyleSheet.create({
   },
   quickActionButton: {
     flex: 1,
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 16,
     alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
   },
-  quickActionIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
   quickActionText: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#374151',
+    marginTop: 8,
   },
   recentSection: {
     paddingHorizontal: 24,
@@ -338,12 +312,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#1f2937',
     marginBottom: 16,
   },
   recentItem: {
+    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -365,10 +342,12 @@ const styles = StyleSheet.create({
   recentItemTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#1f2937',
     marginBottom: 4,
   },
   recentItemSubtitle: {
     fontSize: 14,
+    color: '#6b7280',
     lineHeight: 20,
   },
   viewAllButton: {
@@ -378,33 +357,26 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#22c55e',
   },
   tipsSection: {
     paddingHorizontal: 24,
     paddingBottom: 32,
   },
   tipItem: {
+    backgroundColor: '#ffffff',
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  tipIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
   tipText: {
     fontSize: 14,
+    color: '#374151',
     lineHeight: 20,
-    flex: 1,
   },
 });
