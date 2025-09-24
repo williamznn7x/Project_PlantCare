@@ -13,8 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Send, RotateCcw } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/hooks/useTheme';
+import GlitterBackground from '@/components/GlitterBackground';
 
 export default function AnalysisScreen() {
+  const { colors, theme } = useTheme();
   const { imageData } = useLocalSearchParams<{ imageData: string }>();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,43 +135,67 @@ export default function AnalysisScreen() {
 
   if (!imageData) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Erro: Imagem não encontrada</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <LinearGradient
+          colors={theme === 'dark' 
+            ? ['#0f172a', '#1e293b', '#334155'] 
+            : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
+          }
+          style={styles.backgroundGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <SafeAreaView style={styles.safeArea}>
+            <View style={[styles.errorContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.errorText, { color: colors.error }]}>Erro: Imagem não encontrada</Text>
+              <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <Text style={[styles.backButtonText, { color: colors.primary }]}>Voltar</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={theme === 'dark' 
+          ? ['#0f172a', '#1e293b', '#334155'] 
+          : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
+        }
+        style={styles.backgroundGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <GlitterBackground starCount={38} size={8} color="#22c55e" />
+        <GlitterBackground starCount={38} size={8} color="#22c55e" />
+        <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1f2937" />
+          <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Análise da Planta</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Análise da Planta</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.imageContainer}>
-          <Image source={{ uri: `data:image/jpeg;base64,${imageData}` }} style={styles.image} />
+          <Image source={{ uri: `data:image/jpeg;base64,${imageData}` }} style={[styles.image, { backgroundColor: colors.border }]} />
         </View>
 
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: colors.surface, borderColor: colors.error }]}>
+            <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
           </View>
         )}
 
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionsTitle}>
+        <View style={[styles.instructionsContainer, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
+          <Text style={[styles.instructionsTitle, { color: colors.text }]}>
             {isAnalyzing ? 'Analisando sua planta...' : 'Pronto para análise'}
           </Text>
-          <Text style={styles.instructionsText}>
+          <Text style={[styles.instructionsText, { color: colors.textSecondary }]}>
             {isAnalyzing
               ? 'Nossa IA está examinando a imagem e identificando possíveis problemas ou condições da planta.'
               : 'Confirme se a imagem está nítida e bem enquadrada, depois toque em "Analisar" para começar.'
@@ -177,24 +205,24 @@ export default function AnalysisScreen() {
 
         {isAnalyzing && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#22c55e" />
-            <Text style={styles.loadingText}>Processando imagem...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Processando imagem...</Text>
           </View>
         )}
       </ScrollView>
 
-      <View style={styles.bottomActions}>
+      <View style={[styles.bottomActions, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
         <TouchableOpacity
-          style={styles.secondaryButton}
+          style={[styles.secondaryButton, { backgroundColor: colors.background }]}
           onPress={retakePhoto}
           disabled={isAnalyzing}
         >
-          <RotateCcw size={20} color="#6b7280" />
-          <Text style={styles.secondaryButtonText}>Nova Foto</Text>
+          <RotateCcw size={20} color={colors.textSecondary} />
+          <Text style={[styles.secondaryButtonText, { color: colors.textSecondary }]}>Nova Foto</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.primaryButton, isAnalyzing && styles.primaryButtonDisabled]}
+          style={[styles.primaryButton, { backgroundColor: colors.primary }, isAnalyzing && { backgroundColor: colors.textSecondary }]}
           onPress={analyzeImage}
           disabled={isAnalyzing}
         >
@@ -208,14 +236,21 @@ export default function AnalysisScreen() {
           )}
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+  },
+  backgroundGradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -223,9 +258,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   backButton: {
     padding: 8,
@@ -233,7 +266,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1f2937',
   },
   content: {
     padding: 24,
@@ -246,14 +278,11 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 20,
-    backgroundColor: '#e5e7eb',
   },
   instructionsContainer: {
-    backgroundColor: '#ffffff',
     padding: 24,
     borderRadius: 16,
     marginBottom: 24,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -262,13 +291,11 @@ const styles = StyleSheet.create({
   instructionsTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 8,
     textAlign: 'center',
   },
   instructionsText: {
     fontSize: 16,
-    color: '#6b7280',
     lineHeight: 24,
     textAlign: 'center',
   },
@@ -278,20 +305,16 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6b7280',
     marginTop: 16,
   },
   errorContainer: {
-    backgroundColor: '#fef2f2',
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#fecaca',
   },
   errorText: {
     fontSize: 16,
-    color: '#dc2626',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -299,9 +322,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     gap: 16,
   },
   secondaryButton: {
@@ -311,13 +332,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#f3f4f6',
     gap: 8,
   },
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6b7280',
   },
   primaryButton: {
     flex: 2,
@@ -326,7 +345,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: '#22c55e',
     gap: 8,
   },
   primaryButtonDisabled: {
@@ -340,6 +358,5 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#22c55e',
   },
 });

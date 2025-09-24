@@ -13,6 +13,9 @@ import { Heart, Trash2, Share, Calendar } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/hooks/useTheme';
+import GlitterBackground from '@/components/GlitterBackground';
 
 interface Analysis {
   id: string;
@@ -23,6 +26,7 @@ interface Analysis {
 }
 
 export default function HistoryScreen() {
+  const { colors, theme } = useTheme();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
 
@@ -104,7 +108,7 @@ export default function HistoryScreen() {
 
   const renderAnalysisItem = ({ item }: { item: Analysis }) => (
     <TouchableOpacity
-      style={styles.analysisItem}
+      style={[styles.analysisItem, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
       onPress={() => router.push({
         pathname: '/result',
         params: { 
@@ -117,7 +121,7 @@ export default function HistoryScreen() {
       <Image source={{ uri: item.imageUri }} style={styles.analysisImage} />
       <View style={styles.analysisContent}>
         <View style={styles.analysisHeader}>
-          <Text style={styles.analysisDate}>
+          <Text style={[styles.analysisDate, { color: colors.text }]}>
             {formatDate(item.timestamp)}
           </Text>
           <View style={styles.analysisActions}>
@@ -127,25 +131,25 @@ export default function HistoryScreen() {
             >
               <Heart
                 size={20}
-                color={item.isFavorite ? '#ef4444' : '#9ca3af'}
-                fill={item.isFavorite ? '#ef4444' : 'none'}
+                color={item.isFavorite ? colors.error : colors.textSecondary}
+                fill={item.isFavorite ? colors.error : 'none'}
               />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => shareAnalysis(item)}
               style={styles.actionButton}
             >
-              <Share size={20} color="#6b7280" />
+              <Share size={20} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => deleteAnalysis(item.id)}
               style={styles.actionButton}
             >
-              <Trash2 size={20} color="#ef4444" />
+              <Trash2 size={20} color={colors.error} />
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.analysisPreview} numberOfLines={3}>
+        <Text style={[styles.analysisPreview, { color: colors.textSecondary }]} numberOfLines={3}>
           {item.result.substring(0, 150)}...
         </Text>
       </View>
@@ -153,23 +157,50 @@ export default function HistoryScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Histórico de Análises</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={theme === 'dark' 
+          ? ['#0f172a', '#1e293b', '#334155'] 
+          : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
+        }
+        style={styles.backgroundGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <GlitterBackground starCount={40} size={8} color="#22c55e" />
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.header}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Histórico de Análises</Text>
         <View style={styles.filterButtons}>
           <TouchableOpacity
-            style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
+            style={[
+              styles.filterButton, 
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              filter === 'all' && { backgroundColor: colors.primary, borderColor: colors.primary }
+            ]}
             onPress={() => setFilter('all')}
           >
-            <Text style={[styles.filterButtonText, filter === 'all' && styles.filterButtonTextActive]}>
+            <Text style={[
+              styles.filterButtonText, 
+              { color: colors.textSecondary },
+              filter === 'all' && { color: '#ffffff' }
+            ]}>
               Todas
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterButton, filter === 'favorites' && styles.filterButtonActive]}
+            style={[
+              styles.filterButton, 
+              { backgroundColor: colors.surface, borderColor: colors.border },
+              filter === 'favorites' && { backgroundColor: colors.primary, borderColor: colors.primary }
+            ]}
             onPress={() => setFilter('favorites')}
           >
-            <Text style={[styles.filterButtonText, filter === 'favorites' && styles.filterButtonTextActive]}>
+            <Text style={[
+              styles.filterButtonText, 
+              { color: colors.textSecondary },
+              filter === 'favorites' && { color: '#ffffff' }
+            ]}>
               Favoritas
             </Text>
           </TouchableOpacity>
@@ -178,11 +209,11 @@ export default function HistoryScreen() {
 
       {filteredAnalyses.length === 0 ? (
         <View style={styles.emptyState}>
-          <Calendar size={64} color="#d1d5db" />
-          <Text style={styles.emptyStateTitle}>
+          <Calendar size={64} color={colors.textSecondary} />
+          <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
             {filter === 'favorites' ? 'Nenhuma análise favorita' : 'Nenhuma análise ainda'}
           </Text>
-          <Text style={styles.emptyStateSubtitle}>
+          <Text style={[styles.emptyStateSubtitle, { color: colors.textSecondary }]}>
             {filter === 'favorites'
               ? 'Marque suas análises favoritas para vê-las aqui'
               : 'Comece analisando uma planta na aba principal'
@@ -198,14 +229,21 @@ export default function HistoryScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+  },
+  backgroundGradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     padding: 24,
@@ -214,7 +252,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
     marginBottom: 16,
   },
   filterButtons: {
@@ -225,9 +262,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
   },
   filterButtonActive: {
     backgroundColor: '#22c55e',
@@ -236,7 +271,6 @@ const styles = StyleSheet.create({
   filterButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6b7280',
   },
   filterButtonTextActive: {
     color: '#ffffff',
@@ -246,12 +280,10 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   analysisItem: {
-    backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     flexDirection: 'row',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -275,7 +307,6 @@ const styles = StyleSheet.create({
   analysisDate: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
   },
   analysisActions: {
     flexDirection: 'row',
@@ -286,7 +317,6 @@ const styles = StyleSheet.create({
   },
   analysisPreview: {
     fontSize: 14,
-    color: '#6b7280',
     lineHeight: 20,
   },
   emptyState: {
@@ -298,14 +328,12 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#374151',
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyStateSubtitle: {
     fontSize: 16,
-    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
   },

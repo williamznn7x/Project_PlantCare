@@ -9,8 +9,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Camera, Trash2, Info, Shield, CircleHelp as HelpCircle, ExternalLink } from 'lucide-react-native';
+import { Bell, Camera, Trash2, Info, Shield, CircleHelp as HelpCircle, ExternalLink, Moon, Sun } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/hooks/useTheme';
+import GlitterBackground from '@/components/GlitterBackground';
 
 interface Settings {
   notifications: boolean;
@@ -19,6 +22,7 @@ interface Settings {
 }
 
 export default function SettingsScreen() {
+  const { colors, theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState<Settings>({
     notifications: true,
     highQualityImages: true,
@@ -107,38 +111,57 @@ export default function SettingsScreen() {
     onValueChange?: (value: boolean) => void;
     type?: 'switch' | 'button';
   }) => (
-    <View style={styles.settingItem}>
+    <View style={[styles.settingItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
       <View style={styles.settingIcon}>
         {icon}
       </View>
       <View style={styles.settingContent}>
-        <Text style={styles.settingTitle}>{title}</Text>
-        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+        <Text style={[styles.settingTitle, { color: colors.text }]}>{title}</Text>
+        {subtitle && <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
       </View>
       {type === 'switch' && (
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: '#e5e7eb', true: '#86efac' }}
-          thumbColor={value ? '#22c55e' : '#f3f4f6'}
+          trackColor={{ false: colors.border, true: '#86efac' }}
+          thumbColor={value ? colors.primary : colors.textSecondary}
         />
       )}
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient
+        colors={theme === 'dark' 
+          ? ['#0f172a', '#1e293b', '#334155'] 
+          : ['#f0fdf4', '#ecfdf5', '#f0f9ff']
+        }
+        style={styles.backgroundGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <GlitterBackground starCount={30} size={8} color="#22c55e" />
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Configurações</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Configurações</Text>
         </View>
 
         {/* App Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferências</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferências</Text>
           
           <SettingItem
-            icon={<Bell size={24} color="#6b7280" />}
+            icon={theme === 'dark' ? <Sun size={24} color={colors.warning} /> : <Moon size={24} color={colors.textSecondary} />}
+            title="Tema Escuro"
+            subtitle={theme === 'dark' ? 'Ativado' : 'Desativado'}
+            value={theme === 'dark'}
+            onValueChange={toggleTheme}
+          />
+          
+          <SettingItem
+            icon={<Bell size={24} color={colors.textSecondary} />}
             title="Notificações"
             subtitle="Receber lembretes e atualizações"
             value={settings.notifications}
@@ -146,7 +169,7 @@ export default function SettingsScreen() {
           />
           
           <SettingItem
-            icon={<Camera size={24} color="#6b7280" />}
+            icon={<Camera size={24} color={colors.textSecondary} />}
             title="Imagens de Alta Qualidade"
             subtitle="Melhor qualidade para análise mais precisa"
             value={settings.highQualityImages}
@@ -154,7 +177,7 @@ export default function SettingsScreen() {
           />
           
           <SettingItem
-            icon={<Shield size={24} color="#6b7280" />}
+            icon={<Shield size={24} color={colors.textSecondary} />}
             title="Salvamento Automático"
             subtitle="Salvar análises automaticamente"
             value={settings.autoSave}
@@ -164,17 +187,17 @@ export default function SettingsScreen() {
 
         {/* Data Management */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dados</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Dados</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={clearAllData}>
+          <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} onPress={clearAllData}>
             <View style={styles.settingIcon}>
-              <Trash2 size={24} color="#ef4444" />
+              <Trash2 size={24} color={colors.error} />
             </View>
             <View style={styles.settingContent}>
-              <Text style={[styles.settingTitle, { color: '#ef4444' }]}>
+              <Text style={[styles.settingTitle, { color: colors.error }]}>
                 Limpar Todos os Dados
               </Text>
-              <Text style={styles.settingSubtitle}>
+              <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
                 Remove todas as análises e configurações
               </Text>
             </View>
@@ -183,51 +206,58 @@ export default function SettingsScreen() {
 
         {/* Help & Support */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Suporte</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Suporte</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={showHelp}>
+          <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} onPress={showHelp}>
             <View style={styles.settingIcon}>
-              <HelpCircle size={24} color="#6b7280" />
+              <HelpCircle size={24} color={colors.textSecondary} />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>Como Usar</Text>
-              <Text style={styles.settingSubtitle}>
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Como Usar</Text>
+              <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
                 Guia de uso do aplicativo
               </Text>
             </View>
-            <ExternalLink size={20} color="#9ca3af" />
+            <ExternalLink size={20} color={colors.textSecondary} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem} onPress={showAbout}>
+          <TouchableOpacity style={[styles.settingItem, { backgroundColor: colors.surface, borderBottomColor: colors.border }]} onPress={showAbout}>
             <View style={styles.settingIcon}>
-              <Info size={24} color="#6b7280" />
+              <Info size={24} color={colors.textSecondary} />
             </View>
             <View style={styles.settingContent}>
-              <Text style={styles.settingTitle}>Sobre</Text>
-              <Text style={styles.settingSubtitle}>
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Sobre</Text>
+              <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
                 Informações do aplicativo
               </Text>
             </View>
-            <ExternalLink size={20} color="#9ca3af" />
+            <ExternalLink size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* App Info */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>PlantAI v1.0.0</Text>
-          <Text style={styles.footerSubtext}>
+          <Text style={[styles.footerText, { color: colors.text }]}>PlantAI v1.0.0</Text>
+          <Text style={[styles.footerSubtext, { color: colors.textSecondary }]}>
             Análise de plantas com inteligência artificial
           </Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+  },
+  backgroundGradient: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     padding: 24,
@@ -236,7 +266,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#1f2937',
   },
   section: {
     marginBottom: 32,
@@ -244,18 +273,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 16,
     paddingHorizontal: 24,
   },
   settingItem: {
-    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
   settingIcon: {
     marginRight: 16,
@@ -266,12 +292,10 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
     marginBottom: 2,
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
     lineHeight: 20,
   },
   footer: {
@@ -282,12 +306,10 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 4,
   },
   footerSubtext: {
     fontSize: 14,
-    color: '#9ca3af',
     textAlign: 'center',
   },
 });
